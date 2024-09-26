@@ -21,12 +21,21 @@ export const stageOne = {
 
     await VenomBot.getInstance().sendText({ to: params.from, message: msg });
 
+    // Lógica para retornar ao menu após mostrar o local
+    if (storage[params.from].stage === STAGES.VER_LOCAL) {
+      // Adicionando um pequeno delay antes de reiniciar para evitar chamadas simultâneas
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 segundo de delay
+      storage[params.from].stage = STAGES.INICIAL; // Retorna ao estágio inicial
+      await initialStage.exec(params); // Mostra o estágio inicial (menu) novamente
+    }
+
+    // Lógica existente para os outros estágios
     if (storage[params.from].stage === STAGES.INICIAL) {
       await initialStage.exec(params);
     } else if (storage[params.from].stage === STAGES.FALAR_COM_ATENDENTE) {
       storage[params.from].finalStage = {
         startsIn: new Date().getTime(),
-        endsIn: new Date().setSeconds(60), // 1 minute of inactivity
+        endsIn: new Date().setSeconds(60), // 1 minuto de inatividade
       };
     }
   },
@@ -60,6 +69,7 @@ const options = {
     return {
       message: "🔗 Aqui está o local: http://maps.app.goo.gl/wBLuZwXs7jA2x8L49",
       nextStage: STAGES.VER_LOCAL,
+      nextStage: STAGES.MENU,
     };
   },
   0: () => {
